@@ -21,7 +21,6 @@ Features
 * You can choose to ignore the CSS from the plugin and create your own.
 
 
-
 == Installation ==
 
 There are a few ways to get the plugin working.  Here's the normal way:
@@ -38,7 +37,7 @@ If you don't use sidebars and are a SUPER-DIY "roll your own" kind of guy/gal, t
 1. "Remove" the widget immediately or drag it to "Inactive Widgets".
 1. In your theme add the following php snippet `<?php do_action('wp_dribbble'); ?>`
 
-Roll Your Own CSS
+= Roll Your Own CSS =
 
 By default the application will include the following CSS in an inline CSS block, which may or may not validate.  If you hate inline CSS or think you can it CSS better, just uncheck the option.
 
@@ -86,19 +85,17 @@ And here's the generated code (pretty much the same as Dribbble's).
 
 = Can I do my own CSS? =
 
-Yes.  Here's the CSS Dribbble uses (more or less). 
+Yes.  Just uncheck the "Include CSS?" option and then get to CSSing.
 
-= What about foo bar? =
 
-Answer to foo bar dilemma.
-
-== Screenshots ==
-
-1. This screen shot description corresponds to screenshot-1.(png|jpg|jpeg|gif). Note that the screenshot is taken from
-the directory of the stable readme.txt, so in this case, `/tags/4.3/screenshot-1.png` (or jpg, jpeg, gif)
-2. This is the second screen shot
 
 == Changelog ==
+
+= 1.0.1 =
+* Now with less deprecated functions!
+* Fixed issue with needless expand($args) call.
+* Added border-bottom to shots CSS with no-shadow.
+* Fixed issue where RSS feed rendered invalid because of extra whitespace.
 
 = 1.0 =
 * First version suckkkkaaz.

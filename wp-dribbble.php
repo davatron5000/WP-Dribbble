@@ -4,7 +4,7 @@ Plugin Name: WP Dribbble
 Plugin URI: http://daverupert.com/category/wordpress/wp-dribbble/
 Description: Pull in your Dribbble Feed.
 Author: Dave Rupert
-Version: 1
+Version: 1.0.1
 Author URI: http://daverupert.com/
 */
 /*
@@ -25,22 +25,30 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 function wpDribbble() { 
-	include_once(ABSPATH . WPINC . '/rss.php');
-  extract($args);
+	include_once(ABSPATH . WPINC . '/feed.php');
  
   $options = get_option("widget_wpDribbble");
 	$playerName = $options['playerName'];
-	$maxitems = $options['maxItems'];
 
-	$rss = fetch_rss("http://dribbble.com/players/$playerName/shots.rss");
-	$items = array_slice($rss->items, 0, $maxitems);
+	if(function_exists('fetch_feed')):
+		$rss = fetch_feed("http://dribbble.com/players/$playerName/shots.rss");
+		add_filter( 'wp_feed_cache_transient_lifetime', create_function( '$a', 'return 1800;' ) );
+		if (!is_wp_error( $rss ) ) : 
+			$items = $rss->get_items(0, $rss->get_item_quantity($options['maxItems'])); 
+		endif;
+	endif;
 
-if (!empty($items)): ?>
+	if (!empty($items)): ?>
 <ol class="dribbbles">
 <?php	
 foreach ( $items as $item ):
-	preg_match("/(http).*(jpg|jpeg|gif|png)/",  $item['description'], $image_url);
-	$image = $image_url[0];
+	$title = $item->get_title();
+	$link = $item->get_permalink();
+	$date = $item->get_date('F d, Y');
+	$description = $item->get_description();
+
+	preg_match("/src=\"(http.*(jpg|jpeg|gif|png))/", $description, $image_url);
+	$image = $image_url[1];
 	if(!$options['bigImage']) {
 		$image = preg_replace('/.(jpg|jpeg|gif|png)/', '_teaser.$1',$image); #comment this out if you want to use the big 400x300 image
 	}
@@ -49,10 +57,10 @@ foreach ( $items as $item ):
 	<div class="dribbble"> 
 		<div class="dribbble-shot"> 
 			<div class="dribbble-img"> 
-				<a href="<?php echo $item['link']; ?>" class="dribbble-link"><img src="<?php echo $image ?>" alt="<?php echo $item['title'];?>"/></a> 
-				<a href="<?php echo $item['link']; ?>" class="dribbble-over"><strong><?php echo $item['title']; ?></strong> 
+				<a href="<?php echo $link; ?>" class="dribbble-link"><img src="<?php echo $image; ?>" alt="<?php echo $title;?>"/></a> 
+				<a href="<?php echo $link; ?>" class="dribbble-over"><strong><?php echo $title; ?></strong> 
 					<span class="dim"><?php echo $options['playerName'] ?></span>
-					<em><?php echo date('F d, Y', strtotime($item['pubdate'])); ?></em> 
+					<em><?php echo $date; ?></em> 
 				</a>
 			</div>
 		</div>
@@ -71,7 +79,7 @@ function wpDribbble_head() {
 <style type="text/css">
 .dribbbles{list-style-type:none;margin:0px 0px 1.5em;}
 .dribbbles li{font-size:15px;position:relative;width:220px;padding:0;margin:0 0 1.5em 0;}
-.dribbbles .dribbble{font-family:"Helvetica Nueue", Helvetica, Arial, sans-serif;position:relative;clear:left;overflow:hidden;<?php if($options['dropShadow']):?>padding:0 0 10px 0;background:url(<?php echo $dir; ?>images/dribbblesprite.png) no-repeat -10px -480px;<?php endif;?>}
+.dribbbles .dribbble{font-family:"Helvetica Nueue", Helvetica, Arial, sans-serif;position:relative;clear:left;overflow:hidden;<?php if($options['dropShadow']):?>padding:0 0 10px 0;background:url(<?php echo $dir; ?>images/dribbblesprite.png) no-repeat -10px -480px;<?php else:?>border-bottom:1px solid #e5e5e5;<?php endif;?>}
 .dribbbles .dribbble-shot{padding:10px;background:url(<?php echo $dir; ?>images/dribbblesprite.png) no-repeat -10px -330px;}
 .dribbbles .dribbble-over{position:absolute;top:10px;left:10px;z-index:1;width:180px;height:130px;margin:0!important;padding:10px;font-size:0.8em;line-height:2em;text-decoration:none;color:#888;background:url(<?php echo $dir; ?>images/dribbblesprite.png) no-repeat -110px -160px;}
 .dribbbles .dribbble-link{position:relative;z-index:2;}
@@ -93,7 +101,7 @@ function wpDribbble_control() {
   	'maxItems' => '5',
   	'includeCSS' => true,
   	'dropShadow' => true,
-  	'dropShadow' => false
+  	'bigImage' => false
     );
   }
   if ($_POST['wpDribbble-Submit']) {
@@ -159,7 +167,7 @@ function widget_wpDribbble($args) {
 function wpDribbble_init()
 {
   $options = get_option("widget_wpDribbble");
-  register_sidebar_widget(__('Dribbble'), 'widget_wpDribbble');
+  wp_register_sidebar_widget(__('Dribbble'),__('Dribbble'), 'widget_wpDribbble' ,array('description' => 'Pull in your latest Dribbble shots'));
   register_widget_control(   'Dribbble', 'wpDribbble_control');
 	add_action( 'wp_dribbble', 'wpDribbble' );
 	if($options['includeCSS']) {
@@ -168,4 +176,3 @@ function wpDribbble_init()
 }
 add_action("plugins_loaded", "wpDribbble_init");
 ?>
- 
