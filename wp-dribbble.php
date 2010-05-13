@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: WP Dribbble
-Plugin URI: http://daverupert.com/category/wordpress/wp-dribbble/
+Plugin URI: http://daverupert.com/2010/05/dribbble-wordpress-plugin/
 Description: Pull in your Dribbble Feed.
 Author: Dave Rupert
 Version: 1.0.1
