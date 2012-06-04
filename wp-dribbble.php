@@ -27,8 +27,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 function wpDribbble() { 
 	include_once(ABSPATH . WPINC . '/feed.php');
  
-  $options = get_option("widget_wpDribbble");
+  	$options = get_option("widget_wpDribbble");
 	$playerName = $options['playerName'];
+	$widgetTitle = $options['widgetTitle'];
 
 	if(function_exists('fetch_feed')):
 		$rss = fetch_feed("http://dribbble.com/players/$playerName/shots.rss");
@@ -39,9 +40,12 @@ function wpDribbble() {
 	endif;
 
 	if (!empty($items)): ?>
-<ol class="dribbbles">
-<?php	
-foreach ( $items as $item ):
+	<!-- Custom Dribbble Widget Title -->
+	<h3><?php if(!empty($widgetTitle)) : echo $widgetTitle; else : echo 'Dribbbles'; endif; ?></h3>
+
+	<ol class="dribbbles">
+	<?php	
+	foreach ( $items as $item ):
 	$title = $item->get_title();
 	$link = $item->get_permalink();
 	$date = $item->get_date('F d, Y');
@@ -51,8 +55,8 @@ foreach ( $items as $item ):
 	$image = $image_url[1];
 	if(!$options['bigImage']) {
 		$image = preg_replace('/.(jpg|jpeg|gif|png)/', '_teaser.$1',$image); #comment this out if you want to use the big 400x300 image
-	}
-?>
+	}?>
+
 	<li class="group"> 
 	<div class="dribbble"> 
 		<div class="dribbble-shot"> 
@@ -97,32 +101,55 @@ function wpDribbble_control() {
   $options = get_option("widget_wpDribbble");
   if (!is_array( $options )) {
 	$options = array(
-		'playerName'=> 'Your Player Name',
-  	'maxItems' => '5',
+	'playerName'=> 'Your Player Name',
+  	'widgetTitle'=> 'Latest Dribbbles',
+	'maxItems' => '5',
   	'includeCSS' => true,
   	'dropShadow' => true,
   	'bigImage' => false
     );
   }
+  
   if ($_POST['wpDribbble-Submit']) {
+  	//player name
     $options['playerName'] = htmlspecialchars($_POST['wpDribbble-WidgetPlayerName']);
+    
+    //widget Title
+    $options['widgetTitle'] = htmlspecialchars($_POST['wpDribbble-WidgetTitle']);
+    
+    //maximum number of shots
     $options['maxItems'] = htmlspecialchars($_POST['wpDribbble-WidgetMaxItems']);
+    
+    //include CSS option
     $options['includeCSS'] = htmlspecialchars($_POST['wpDribbble-WidgetIncludeCSS']);
+    
+    // drop shadow option
     $options['dropShadow'] = htmlspecialchars($_POST['wpDribbble-WidgetDropShadow']);
+    
+    // big image option
     $options['bigImage'] = htmlspecialchars($_POST['wpDribbble-WidgetBigImage']);
+    
+    //updateoption
     update_option("widget_wpDribbble", $options);
   }
 ?>
+
 <style type="text/css">
 	.labbbel { width: 90px; display:inline-block; }
 	.quiet { color:#CCC;}
 </style>
+
 <p>
     <label class="labbbel" for="wpDribbble-WidgetPlayerName">Player Name: </label>
     <input type="text" id="wpDribbble-WidgetPlayerName" name="wpDribbble-WidgetPlayerName" value="<?php echo $options['playerName'];?>" />
 </p>
 <p>
-		<label class="labbbel" for="wpDribbble-WidgetMaxItems">No. of Shots: </label>
+	<label class="labbbel" for="wpDribbble-WidgetTitle">Widget Title</label>
+    <input type="text" id="wpDribbble-WidgetTitle" name="wpDribbble-WidgetTitle" value="<?php echo $options['widgetTitle']; ?>">
+    <em class="quiet">Default: Dribbble Shots</em>
+</p>
+<p>
+	<label class="labbbel" for="wpDribbble-WidgetMaxItems">No. of Shots: </label>
     <select id="wpDribbble-WidgetMaxItems" name="wpDribbble-WidgetMaxItems">
     	<option value="1" <?php if($options['maxItems'] == 1) echo "selected";?>>1</option>
     	<option value="2" <?php if($options['maxItems'] == 2) echo "selected";?>>2</option>
@@ -137,17 +164,17 @@ function wpDribbble_control() {
     </select>
 </p>
 <p>
-		<label class="labbbel" for="wpDribbble-WidgetIncludeCSS">Include CSS?  </label>
+	<label class="labbbel" for="wpDribbble-WidgetIncludeCSS">Include CSS?  </label>
     <input type="checkbox" id="wpDribbble-WidgetIncludeCSS" name="wpDribbble-WidgetIncludeCSS" <?php if($options['includeCSS']) echo "checked";?>>
     <em class="quiet">Default: On</em>
 </p>
 <p>
-		<label class="labbbel" for="wpDribbble-WidgetDropShadow">Drop shadow?  </label>
+	<label class="labbbel" for="wpDribbble-WidgetDropShadow">Drop shadow?  </label>
     <input type="checkbox" id="wpDribbble-WidgetDropShadow" name="wpDribbble-WidgetDropShadow" <?php if($options['dropShadow']) echo "checked";?>>
     <em class="quiet">Default: On</em>
 </p>
 <p>
-		<label class="labbbel" for="wpDribbble-WidgetBigImage">Big Image?  </label>
+	<label class="labbbel" for="wpDribbble-WidgetBigImage">Big Image?  </label>
     <input type="checkbox" id="wpDribbble-WidgetBigImage" name="wpDribbble-WidgetBigImage" <?php if($options['bigImage']) echo "checked";?>>
     <em class="quiet">Default: Off</em>
 </p>
@@ -155,24 +182,22 @@ function wpDribbble_control() {
 
 <?php
 }
- 
+
 function widget_wpDribbble($args) {
-  extract($args);
-  echo $before_widget;
-  echo $before_title;?>Dribbble<?php echo $after_title;
-  wpDribbble();
-  echo $after_widget;
+	extract($args);
+	echo $before_widget;
+	wpDribbble();
+	echo $after_widget;
 }
   
-function wpDribbble_init()
-{
-  $options = get_option("widget_wpDribbble");
-  wp_register_sidebar_widget(__('Dribbble'),__('Dribbble'), 'widget_wpDribbble' ,array('description' => 'Pull in your latest Dribbble shots'));
-  register_widget_control(   'Dribbble', 'wpDribbble_control');
+function wpDribbble_init() {
+	$options = get_option("widget_wpDribbble");
+	wp_register_sidebar_widget(__('Dribbble'),__('Dribbble'), 'widget_wpDribbble' ,array('description' => 'Pull in your latest Dribbble shots'));
+	register_widget_control(   'Dribbble', 'wpDribbble_control');
 	add_action( 'wp_dribbble', 'wpDribbble' );
-	if($options['includeCSS']) {
-		add_action('wp_head', 'wpDribbble_head');
-	}
+	if($options['includeCSS']){add_action('wp_head', 'wpDribbble_head');};
 }
+
 add_action("plugins_loaded", "wpDribbble_init");
+//end dribbble shots plugin
 ?>
